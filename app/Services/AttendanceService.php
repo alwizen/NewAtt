@@ -1,0 +1,118 @@
+<?php
+// app/Services/AttendanceService.php
+
+namespace App\Services;
+
+use App\Models\Employee;
+use App\Models\Attendance;
+use Carbon\Carbon;
+
+class AttendanceService
+{
+    /**
+     * Proses tap RFID - menentukan apakah ini check-in atau check-out
+     */
+    public function processTap(Employee $employee, $tappedAt): array
+    {
+        $tappedTime = Carbon::parse($tappedAt);
+
+        // Ambil work schedule dari departemen
+        $workSchedule = $employee->department->activeWorkSchedule;
+
+        if (!$workSchedule) {
+            throw new \Exception('Departemen tidak memiliki jadwal kerja aktif');
+        }
+
+        // Tentukan tanggal kerja
+        $workDate = $workSchedule->determineWorkDate($tappedTime);
+
+        // Cari attendance record untuk tanggal kerja ini
+        $attendance = Attendance::firstOrNew([
+            'employee_id' => $employee->id,
+            'work_date' => $workDate,
+        ]);
+
+        // Logika: jika belum ada check_in atau sudah ada check_out, ini adalah check_in baru
+        // Jika sudah ada check_in tapi belum check_out, ini adalah check_out
+        if (!$attendance->check_in_at || $attendance->check_out_at) {
+            // Check-in
+            $attendance->check_in_at = $tappedTime;
+            $attendance->check_out_at = null;
+            $attendance->late_minutes = $workSchedule->calculateLateMinutes($tappedTime);
+            $attendance->work_hours = 0;
+            $attendance->status = 'incomplete';
+            $message = 'Check-in berhasil';
+        } else {
+            // Check-out
+            $attendance->check_out_at = $tappedTime;
+            $attendance->work_hours = $attendance->calculateWorkHours();
+            $attendance->updateStatus();
+            $message = 'Check-out berhasil';
+        }
+
+        $attendance->save();
+
+        return [
+            'attendance' => $attendance->fresh(),
+            'message' => $message,
+        ];
+    }
+
+    /**
+     * Update manual attendance record
+     */
+    public function updateAttendance(Attendance $attendance, array $data): Attendance
+    {
+        if (isset($data['check_in_at'])) {
+            $attendance->check_in_at = $data['check_in_at'];
+
+            $workSchedule = $attendance->employee->department->activeWorkSchedule;
+            if ($workSchedule) {
+                $attendance->late_minutes = $workSchedule->calculateLateMinutes(
+                    Carbon::parse($data['check_in_at'])
+                );
+            }
+        }
+
+        if (isset($data['check_out_at'])) {
+            $attendance->check_out_at = $data['check_out_at'];
+        }
+
+        if (isset($data['notes'])) {
+            $attendance->notes = $data['notes'];
+        }
+
+        // Recalculate work hours and status
+        $attendance->work_hours = $attendance->calculateWorkHours();
+        $attendance->updateStatus();
+        $attendance->save();
+
+        return $attendance;
+    }
+
+    /**
+     * Generate attendance summary untuk periode tertentu
+     * Biasanya dipanggil di akhir bulan sebelum proses payroll
+     */
+    public function generateMonthlySummary(Employee $employee, int $year, int $month): void
+    {
+        $attendances = Attendance::where('employee_id', $employee->id)
+            ->whereYear('work_date', $year)
+            ->whereMonth('work_date', $month)
+            ->get();
+
+        $summary = $employee->attendanceSummaries()->updateOrCreate(
+            [
+                'year' => $year,
+                'month' => $month,
+            ],
+            [
+                'total_present' => $attendances->whereIn('status', ['present', 'late'])->count(),
+                'total_late' => $attendances->where('status', 'late')->count(),
+                'total_absent' => $attendances->where('status', 'absent')->count(),
+                'total_work_hours' => $attendances->sum('work_hours'),
+                'total_late_minutes' => $attendances->sum('late_minutes'),
+            ]
+        );
+    }
+}
