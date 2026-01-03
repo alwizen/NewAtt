@@ -21,6 +21,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use pxlrbt\FilamentExcel\Actions\ExportBulkAction;
 
 class AttendanceResource extends Resource
 {
@@ -132,6 +133,7 @@ class AttendanceResource extends Resource
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    ExportBulkAction::make(),
                     DeleteBulkAction::make(),
                 ]),
             ]);
