@@ -14,108 +14,225 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f4f8;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #061E48 0%, #D1B06C 50%, #B5E0E9 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(30px, -30px) rotate(120deg);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) rotate(240deg);
+            }
         }
 
         .container {
-            background: #ffffff;
-            padding: 50px 40px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 60px 50px;
             width: 100%;
-            max-width: 480px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            max-width: 500px;
+            border-radius: 30px;
+            box-shadow:
+                0 30px 90px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.3) inset;
             text-align: center;
             position: relative;
+            z-index: 1;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .icon-wrapper {
-            width: 80px;
-            height: 80px;
-            background: #e8f4fd;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #D1B06C 0%, #061E48 100%);
             border-radius: 50%;
-            margin: 0 auto 25px;
+            margin: 0 auto 30px;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(209, 176, 108, 0.4);
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 15px 35px rgba(209, 176, 108, 0.4);
+            }
+
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 20px 45px rgba(209, 176, 108, 0.6);
+            }
+        }
+
+        .icon-wrapper::before {
+            content: '';
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D1B06C 0%, #061E48 100%);
+            opacity: 0.3;
+            animation: ripple 2s ease-out infinite;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
         }
 
         .icon-wrapper svg {
-            width: 40px;
-            height: 40px;
-            fill: #2196F3;
+            width: 50px;
+            height: 50px;
+            fill: white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .icon-wrapper img {
+            width: 65px;
+            height: 65px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
 
         h1 {
-            font-size: 28px;
-            color: #1a202c;
-            margin-bottom: 12px;
-            font-weight: 600;
+            font-size: 32px;
+            background: linear-gradient(135deg, #061E48 0%, #D1B06C 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
 
         .subtitle {
-            color: #718096;
-            margin-bottom: 35px;
-            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 40px;
+            font-size: 17px;
+            font-weight: 500;
         }
 
         .input-wrapper {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         input {
             width: 100%;
-            padding: 18px 20px;
-            font-size: 18px;
+            padding: 22px 25px;
+            font-size: 20px;
             text-align: center;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border: 3px solid transparent;
+            border-radius: 16px;
             outline: none;
-            transition: all 0.3s ease;
-            background: #f8fafc;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, #D1B06C, #061E48) border-box;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #1e293b;
+        }
+
+        input::placeholder {
+            color: #94a3b8;
+            letter-spacing: 0;
+            font-weight: 500;
         }
 
         input:focus {
-            border-color: #2196F3;
-            background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(209, 176, 108, 0.3);
+            background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, #D1B06C, #061E48) border-box;
         }
 
         .instruction {
-            color: #a0aec0;
-            font-size: 14px;
-            margin-top: 15px;
+            color: #64748b;
+            font-size: 15px;
+            margin-top: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
+            font-weight: 500;
         }
 
         .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background: #48bb78;
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(135deg, #10b981, #059669);
             border-radius: 50%;
-            animation: pulse 2s infinite;
+            animation: pulseGlow 2s infinite;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
         }
 
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
+        @keyframes pulseGlow {
+            0% {
                 transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
             }
 
             50% {
-                opacity: 0.5;
                 transform: scale(1.1);
+                box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
             }
         }
 
@@ -128,7 +245,8 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
             animation: fadeIn 0.3s ease;
         }
 
@@ -149,100 +267,158 @@
         }
 
         .modal-content {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 50px;
+            border-radius: 30px;
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
             text-align: center;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-            animation: slideUp 0.3s ease;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+            animation: modalBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             position: relative;
         }
 
-        @keyframes slideUp {
-            from {
-                transform: translateY(50px);
+        @keyframes modalBounce {
+            0% {
+                transform: scale(0.7) translateY(50px);
                 opacity: 0;
             }
 
-            to {
-                transform: translateY(0);
+            50% {
+                transform: scale(1.05) translateY(-10px);
+            }
+
+            100% {
+                transform: scale(1) translateY(0);
                 opacity: 1;
             }
         }
 
         .modal-icon {
-            width: 70px;
-            height: 70px;
-            margin: 0 auto 20px;
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 25px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            animation: iconBounce 0.6s ease-out;
+        }
+
+        @keyframes iconBounce {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
         }
 
         .modal-icon.success {
-            background: #d4edda;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
         }
 
         .modal-icon.error {
-            background: #f8d7da;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 15px 40px rgba(239, 68, 68, 0.4);
+        }
+
+        .modal-icon::before {
+            content: '';
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            border-radius: 50%;
+            background: inherit;
+            opacity: 0.3;
+            animation: modalRipple 1.5s ease-out infinite;
+        }
+
+        @keyframes modalRipple {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1.8);
+                opacity: 0;
+            }
         }
 
         .modal-icon svg {
-            width: 35px;
-            height: 35px;
-        }
-
-        .modal-icon.success svg {
-            fill: #28a745;
-        }
-
-        .modal-icon.error svg {
-            fill: #dc3545;
+            width: 45px;
+            height: 45px;
+            fill: white;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
 
         .modal-title {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #1a202c;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1e293b;
+            letter-spacing: -0.5px;
         }
 
         .modal-message {
-            font-size: 16px;
-            color: #718096;
-            margin-bottom: 25px;
-            line-height: 1.5;
+            font-size: 17px;
+            color: #64748b;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-weight: 500;
         }
 
         .modal-close {
-            background: #2196F3;
+            background: linear-gradient(135deg, #D1B06C 0%, #061E48 100%);
             color: white;
             border: none;
-            padding: 14px 40px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 500;
+            padding: 16px 50px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(209, 176, 108, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-close::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .modal-close:hover::before {
+            left: 100%;
         }
 
         .modal-close:hover {
-            background: #1976D2;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(209, 176, 108, 0.5);
         }
 
         .modal-close:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
 
         /* Loading animation */
         .loading {
             display: none;
-            margin-top: 20px;
+            margin-top: 25px;
         }
 
         .loading.show {
@@ -250,13 +426,13 @@
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             margin: 0 auto;
-            border: 4px solid #e2e8f0;
-            border-top: 4px solid #2196F3;
+            border: 5px solid rgba(209, 176, 108, 0.2);
+            border-top: 5px solid #D1B06C;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
         }
 
         @keyframes spin {
@@ -271,15 +447,20 @@
 
         @media (max-width: 480px) {
             .container {
-                padding: 40px 25px;
+                padding: 45px 30px;
             }
 
             h1 {
-                font-size: 24px;
+                font-size: 26px;
             }
 
             .modal-content {
-                padding: 30px 25px;
+                padding: 40px 30px;
+            }
+
+            input {
+                font-size: 18px;
+                padding: 20px;
             }
         }
     </style>
@@ -289,10 +470,8 @@
 
     <div class="container">
         <div class="icon-wrapper">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path
-                    d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z" />
-            </svg>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/96/Logo_Badan_Gizi_Nasional_%282024%29.png"
+                alt="Logo Badan Gizi Nasional">
         </div>
 
         <h1>Absensi Karyawan</h1>
@@ -345,11 +524,9 @@
         const errorIcon = document.getElementById('errorIcon');
         const loading = document.getElementById('loading');
 
-        // 1. Definisikan variabel timer di luar fungsi
         let autoCloseTimer;
 
         function showModal(success, title, message) {
-            // 2. Bersihkan timer lama jika ada agar tidak bentrok
             clearTimeout(autoCloseTimer);
 
             modalIcon.className = 'modal-icon ' + (success ? 'success' : 'error');
@@ -366,14 +543,12 @@
             modalMessage.textContent = message;
             modal.classList.add('show');
 
-            // 3. Atur timer untuk menutup modal otomatis (3 detik)
             autoCloseTimer = setTimeout(() => {
                 hideModal();
             }, 1500);
         }
 
         function hideModal() {
-            // 4. Pastikan timer dihentikan jika user klik "Tutup" manual sebelum 3 detik
             clearTimeout(autoCloseTimer);
             modal.classList.remove('show');
             input.value = '';

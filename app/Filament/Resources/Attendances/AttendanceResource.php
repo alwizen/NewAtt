@@ -20,7 +20,10 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use pxlrbt\FilamentExcel\Actions\ExportBulkAction;
 
 class AttendanceResource extends Resource
@@ -98,34 +101,110 @@ class AttendanceResource extends Resource
                 TextColumn::make('employee.name')
                     ->searchable(),
                 TextColumn::make('work_date')
-                    ->date()
-                    ->sortable(),
+                    ->date(),
                 TextColumn::make('check_in_at')
-                    ->dateTime()
-                    ->sortable(),
+                    ->dateTime(),
                 TextColumn::make('check_out_at')
-                    ->dateTime()
-                    ->sortable(),
+                    ->dateTime(),
                 TextColumn::make('late_minutes')
+                    ->label('Terlambat')
                     ->numeric()
-                    ->sortable(),
+
+                    ->suffix(' mnt')
+                    ->color(fn($state) => $state > 0 ? 'warning' : 'success')
+                    ->icon(fn($state) => $state > 0 ? Heroicon::OutlinedExclamationTriangle : null),
                 TextColumn::make('work_hours')
+                    ->label('Jam Kerja')
                     ->numeric()
-                    ->sortable(),
+
+                    ->suffix(' jam')
+                    ->color('info'),
                 TextColumn::make('status')
-                    ->searchable(),
+                    ->label('Status')
+                    ->badge()
+                    ->searchable()
+                    ->sortable()
+                    ->color(fn(string $state): string => match ($state) {
+                        'present' => 'success',
+                        'late' => 'warning',
+                        'absent' => 'danger',
+                        'incomplete' => 'gray',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'present' => 'Hadir',
+                        'late' => 'Terlambat',
+                        'absent' => 'Tidak Hadir',
+                        'incomplete' => 'Belum Lengkap',
+                        default => $state,
+                    }),
                 TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable()
+
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
                     ->dateTime()
-                    ->sortable()
+
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('employee_id')
+                    ->label('Karyawan')
+                    ->relationship('employee', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->multiple(),
+
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'present' => 'Hadir',
+                        'late' => 'Terlambat',
+                        'absent' => 'Tidak Hadir',
+                        'incomplete' => 'Belum Lengkap',
+                    ])
+                    ->multiple(),
+
+                Filter::make('work_date')
+                    ->form([
+                        DatePicker::make('from')
+                            ->label('Dari Tanggal')
+                            ->native(false),
+                        DatePicker::make('until')
+                            ->label('Sampai Tanggal')
+                            ->native(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('work_date', '>=', $date),
+                            )
+                            ->when(
+                                $data['until'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('work_date', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if ($data['from'] ?? null) {
+                            $indicators[] = 'Dari: ' . \Carbon\Carbon::parse($data['from'])->format('d/m/Y');
+                        }
+
+                        if ($data['until'] ?? null) {
+                            $indicators[] = 'Sampai: ' . \Carbon\Carbon::parse($data['until'])->format('d/m/Y');
+                        }
+
+                        return $indicators;
+                    }),
+
+                Filter::make('late')
+                    ->label('Terlambat')
+                    ->query(fn(Builder $query): Builder => $query->where('late_minutes', '>', 0))
+                    ->toggle(),
             ])
+            ->defaultSort('work_date', 'desc')
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
