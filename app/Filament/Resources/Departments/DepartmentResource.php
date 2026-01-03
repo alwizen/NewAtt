@@ -26,7 +26,12 @@ class DepartmentResource extends Resource
 {
     protected static ?string $model = Department::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static ?string $navigationLabel = 'Daftar Jabatan';
+
+    protected static ?string $label = 'Daftar Jabatan';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
+
 
     public static function form(Schema $schema): Schema
     {

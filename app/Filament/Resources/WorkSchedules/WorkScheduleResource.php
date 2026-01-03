@@ -27,8 +27,11 @@ class WorkScheduleResource extends Resource
 {
     protected static ?string $model = WorkSchedule::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static ?string $navigationLabel = 'Jam Kerja';
 
+    protected static ?string $label = 'Jam Kerja';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClock;
     public static function form(Schema $schema): Schema
     {
         return $schema
