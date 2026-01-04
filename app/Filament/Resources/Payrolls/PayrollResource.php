@@ -23,109 +23,212 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Carbon\Carbon;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use UnitEnum;
 
 class PayrollResource extends Resource
 {
     protected static ?string $model = Payroll::class;
 
-    protected static ?string $navigationLabel = 'Penggajian';
+    protected static ?string $navigationLabel = 'Periode Penggajian';
 
-    protected static ?string $label = 'Penggajian';
+    protected static string | UnitEnum | null $navigationGroup = 'Gaji Relawan';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyDollar;
+    protected static ?string $label = 'Periode Penggajian';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClock;
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                // Section::make('Periode Payroll')
-                //     ->columns(2)
-                //     ->components([
-                TextInput::make('year')
-                    ->required()
-                    ->numeric()
-                    ->minValue(2000)
-                    ->maxValue(now()),
+                Section::make('Periode Payroll')
+                    ->columns(2)
+                    ->components([
+                        TextInput::make('year')
+                            ->label('Tahun')
+                            ->required()
+                            ->numeric()
+                            ->minValue(2000)
+                            ->maxValue(2099)
+                            ->default(now()->year)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                self::updatePeriodDates($get, $set);
+                            }),
 
-                Select::make('month')
-                    ->required()
-                    ->options([
-                        1 => 'Januari',
-                        2 => 'Februari',
-                        3 => 'Maret',
-                        4 => 'April',
-                        5 => 'Mei',
-                        6 => 'Juni',
-                        7 => 'Juli',
-                        8 => 'Agustus',
-                        9 => 'September',
-                        10 => 'Oktober',
-                        11 => 'November',
-                        12 => 'Desember',
+                        Select::make('month')
+                            ->label('Bulan')
+                            ->required()
+                            ->options([
+                                1 => 'Januari',
+                                2 => 'Februari',
+                                3 => 'Maret',
+                                4 => 'April',
+                                5 => 'Mei',
+                                6 => 'Juni',
+                                7 => 'Juli',
+                                8 => 'Agustus',
+                                9 => 'September',
+                                10 => 'Oktober',
+                                11 => 'November',
+                                12 => 'Desember',
+                            ])
+                            ->default(now()->month)
+                            ->live()
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                self::updatePeriodDates($get, $set);
+                            }),
                     ]),
-                // ]),
-                // Section::make('Tanggal Periode')
-                //     ->columns(2)
-                //     ->components([
-                DatePicker::make('period_start')
-                    ->required(),
 
-                DatePicker::make('period_end')
-                    ->required()
-                    ->afterOrEqual('period_start'),
-                // ]),
+                Section::make('Tanggal Periode')
+                    ->columns(2)
+                    ->components([
+                        DatePicker::make('period_start')
+                            ->label('Tanggal Mulai')
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(
+                                fn(Get $get, Set $set) =>
+                                $set('period_end', null)
+                            ),
 
-                // Section::make('Status')
-                //     ->columns(2)
-                //     ->components([
-                Select::make('status')
-                    ->required()
-                    ->options([
-                        'draft' => 'Draft',
-                        'processed' => 'Processed',
-                        'approved' => 'Approved',
-                        'paid' => 'Paid',
-                    ])
-                    ->default('draft')
-                    ->disabled(fn($record) => $record?->status === 'paid'),
+                        DatePicker::make('period_end')
+                            ->label('Tanggal Selesai')
+                            ->required()
+                            ->afterOrEqual('period_start')
+                            ->minDate(fn(Get $get) => $get('period_start')),
+                    ]),
 
-                DateTimePicker::make('processed_at')
-                    ->disabled(),
-                // ]),
+                Section::make('Status & Catatan')
+                    ->columns(2)
+                    ->components([
+                        Select::make('status')
+                            ->label('Status')
+                            ->required()
+                            ->options([
+                                'draft' => 'Draft',
+                                'processed' => 'Diproses',
+                                'approved' => 'Disetujui',
+                                'paid' => 'Dibayar',
+                                'cancelled' => 'Dibatalkan',
+                            ])
+                            ->default('draft')
+                            ->disabled(fn($record) => in_array($record?->status, ['paid', 'cancelled']))
+                            ->helperText(
+                                fn($record) =>
+                                $record?->status === 'paid'
+                                    ? 'Status tidak dapat diubah karena sudah dibayar'
+                                    : ($record?->status === 'cancelled'
+                                        ? 'Status tidak dapat diubah karena sudah dibatalkan'
+                                        : null)
+                            ),
 
-                Textarea::make('notes')
-                    ->columnSpanFull(),
+                        DateTimePicker::make('processed_at')
+                            ->label('Diproses Pada')
+                            ->disabled()
+                            ->visible(fn($record) => $record?->processed_at !== null)
+                            ->placeholder('-'),
+
+                        Textarea::make('notes')
+                            ->label('Catatan')
+                            ->columnSpanFull()
+                            ->rows(3)
+                            ->placeholder('Tambahkan catatan jika diperlukan'),
+                    ]),
             ]);
+    }
+
+    protected static function updatePeriodDates(Get $get, Set $set): void
+    {
+        $year = $get('year');
+        $month = $get('month');
+
+        if ($year && $month) {
+            $date = Carbon::create($year, $month, 1);
+            $set('period_start', $date->startOfMonth()->toDateString());
+            $set('period_end', $date->copy()->endOfMonth()->toDateString());
+        }
     }
 
     public static function infolist(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->components([
-                TextEntry::make('year')
-                    ->numeric(),
-                TextEntry::make('month')
-                    ->numeric(),
-                TextEntry::make('period_start')
-                    ->date(),
-                TextEntry::make('period_end')
-                    ->date(),
-                TextEntry::make('status'),
-                TextEntry::make('processed_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('processed_by')
-                    ->numeric()
-                    ->placeholder('-'),
-                TextEntry::make('notes')
-                    ->placeholder('-')
-                    ->columnSpanFull(),
-                TextEntry::make('created_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('updated_at')
-                    ->dateTime()
-                    ->placeholder('-'),
+                Section::make('Informasi Periode')
+                    ->columns(2)
+                    ->components([
+                        TextEntry::make('year')
+                            ->label('Tahun')
+                            ->numeric(),
+
+                        TextEntry::make('month')
+                            ->label('Bulan')
+                            ->formatStateUsing(
+                                fn($state) =>
+                                Carbon::create()->month($state)->translatedFormat('F')
+                            ),
+
+                        TextEntry::make('period_start')
+                            ->label('Tanggal Mulai')
+                            ->date('d F Y'),
+
+                        TextEntry::make('period_end')
+                            ->label('Tanggal Selesai')
+                            ->date('d F Y'),
+                    ]),
+
+                Section::make('Status Pemrosesan')
+                    ->columns(2)
+                    ->components([
+                        TextEntry::make('status')
+                            ->label('Status')
+                            ->badge()
+                            ->color(fn(string $state): string => match ($state) {
+                                'draft' => 'gray',
+                                'processed' => 'warning',
+                                'approved' => 'info',
+                                'paid' => 'success',
+                                'cancelled' => 'danger',
+                            })
+                            ->formatStateUsing(fn(string $state): string => match ($state) {
+                                'draft' => 'Draft',
+                                'processed' => 'Diproses',
+                                'approved' => 'Disetujui',
+                                'paid' => 'Dibayar',
+                                'cancelled' => 'Dibatalkan',
+                                default => $state,
+                            }),
+
+                        TextEntry::make('processed_at')
+                            ->label('Diproses Pada')
+                            ->dateTime('d F Y, H:i')
+                            ->placeholder('-'),
+
+                        TextEntry::make('processedBy.name')
+                            ->label('Diproses Oleh')
+                            ->placeholder('-'),
+                    ]),
+
+                Section::make('Catatan & Riwayat')
+                    ->columnSpanFull()
+                    ->components([
+                        TextEntry::make('notes')
+                            ->label('Catatan')
+                            ->placeholder('Tidak ada catatan')
+                            ->columnSpanFull(),
+
+                        TextEntry::make('created_at')
+                            ->label('Dibuat Pada')
+                            ->dateTime('d F Y, H:i'),
+
+                        TextEntry::make('updated_at')
+                            ->label('Diperbarui Pada')
+                            ->dateTime('d F Y, H:i'),
+                    ]),
             ]);
     }
 
@@ -133,30 +236,66 @@ class PayrollResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('year')->sortable(),
+                TextColumn::make('year')
+                    ->label('Tahun')
+                    ->sortable()
+                    ->searchable(),
+
                 TextColumn::make('month')
-                    ->formatStateUsing(fn($state) => \Carbon\Carbon::create()->month($state)->translatedFormat('F'))
+                    ->label('Bulan')
+                    ->formatStateUsing(
+                        fn($state) =>
+                        Carbon::create()->month($state)->translatedFormat('F')
+                    )
                     ->sortable(),
 
-                TextColumn::make('period_start')->date(),
-                TextColumn::make('period_end')->date(),
+                TextColumn::make('period_start')
+                    ->label('Periode')
+                    ->formatStateUsing(
+                        fn($record) =>
+                        Carbon::parse($record->period_start)->format('d/m/Y') .
+                            ' - ' .
+                            Carbon::parse($record->period_end)->format('d/m/Y')
+                    )
+                    ->sortable(),
 
                 BadgeColumn::make('status')
+                    ->label('Status')
                     ->colors([
                         'secondary' => 'draft',
                         'warning' => 'processed',
                         'info' => 'approved',
                         'success' => 'paid',
-                    ]),
+                        'danger' => 'cancelled',
+                    ])
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'draft' => 'Draft',
+                        'processed' => 'Diproses',
+                        'approved' => 'Disetujui',
+                        'paid' => 'Dibayar',
+                        'cancelled' => 'Dibatalkan',
+                        default => $state,
+                    }),
+
+                TextColumn::make('processedBy.name')
+                    ->label('Diproses Oleh')
+                    ->placeholder('-')
+                    ->toggleable(),
 
                 TextColumn::make('processed_at')
-                    ->dateTime()
-                    ->placeholder('-'),
+                    ->label('Tanggal Proses')
+                    ->dateTime('d/m/Y H:i')
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Dibuat')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('year', 'desc')
+            ->defaultSort('month', 'desc')
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make()
@@ -166,7 +305,11 @@ class PayrollResource extends Resource
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->before(function ($records) {
+                            // Hanya hapus yang masih draft
+                            return $records->where('status', 'draft');
+                        }),
                 ]),
             ]);
     }

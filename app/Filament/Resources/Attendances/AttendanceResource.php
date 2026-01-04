@@ -25,6 +25,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use pxlrbt\FilamentExcel\Actions\ExportBulkAction;
+use UnitEnum;
 
 class AttendanceResource extends Resource
 {
@@ -33,6 +34,9 @@ class AttendanceResource extends Resource
     protected static ?string $navigationLabel = 'Rekap Absensi';
 
     protected static ?string $label = 'Rekap Absensi';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Absensi & Relawan';
+
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 

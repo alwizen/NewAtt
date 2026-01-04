@@ -22,12 +22,15 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class EmployeeResource extends Resource
 {
     protected static ?string $model = Employee::class;
 
     protected static ?string $navigationLabel = 'Daftar Relawan';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Absensi & Relawan';
 
     protected static ?string $label = 'Daftar Relawan';
 
@@ -38,18 +41,41 @@ class EmployeeResource extends Resource
         return $schema
             ->components([
                 TextInput::make('rfid_number')
+                    ->label('Kartu Absen')
                     ->required(),
+
                 TextInput::make('employee_number')
-                    ->required(),
+                    ->label('No Karyawan')
+                    ->required()
+                    ->default(function () {
+                        // Generate nomor karyawan otomatis
+                        $lastEmployee = \App\Models\Employee::latest('id')->first();
+                        $nextNumber = $lastEmployee ? (int) substr($lastEmployee->employee_number, -4) + 1 : 1;
+
+                        // Format: SPPG-YYYY-0001
+                        return 'SPPG-' . date('Y') . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                    })
+                    ->disabled()
+                    ->dehydrated()
+                    ->hidden(fn(string $operation): bool => $operation === 'edit'),
+
                 TextInput::make('name')
+                    ->label('Nama')
                     ->required(),
+
                 Select::make('department_id')
                     ->relationship('department', 'name')
                     ->required(),
+
                 DatePicker::make('join_date')
-                    ->required(),
+                    ->label('Tanggal Bergabung')
+                    ->required()
+                    ->default(now()),
+
                 Toggle::make('is_active')
-                    ->required(),
+                    ->label('Status Aktif')
+                    ->required()
+                    ->default(true),
             ]);
     }
 

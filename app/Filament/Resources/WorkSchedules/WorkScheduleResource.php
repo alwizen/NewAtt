@@ -22,6 +22,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class WorkScheduleResource extends Resource
 {
@@ -32,6 +33,9 @@ class WorkScheduleResource extends Resource
     protected static ?string $label = 'Jam Kerja';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClock;
+
+    protected static string | UnitEnum | null $navigationGroup = 'Jabatan & Jam Kerja';
+
     public static function form(Schema $schema): Schema
     {
         return $schema

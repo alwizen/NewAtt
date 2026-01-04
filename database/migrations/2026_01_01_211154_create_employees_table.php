@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('employee_number')->unique(); // NIK/No Karyawan
             $table->string('name');
             $table->foreignId('department_id')->constrained()->restrictOnDelete();
-            $table->date('join_date');
+            $table->date('join_date')->nullable();
             // $table->date('resign_date')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
