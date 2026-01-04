@@ -91,11 +91,11 @@ class PayrollDetailResource extends Resource
                                         $totalLateMinutes = 0;
 
                                         foreach ($attendances as $attendance) {
-                                            // Hitung jam kerja dari check_in dan check_out
-                                            if ($attendance->check_in && $attendance->check_out) {
-                                                $checkIn = \Carbon\Carbon::parse($attendance->check_in);
-                                                $checkOut = \Carbon\Carbon::parse($attendance->check_out);
-                                                $totalWorkHours += $checkIn->diffInHours($checkOut, true);
+                                            // Hitung jam kerja dari check_in_at dan check_out_at
+                                            if ($attendance->check_in_at && $attendance->check_out_at) {
+                                                $checkIn = \Carbon\Carbon::parse($attendance->check_in_at);
+                                                $checkOut = \Carbon\Carbon::parse($attendance->check_out_at);
+                                                $totalWorkHours += $checkIn->diffInMinutes($checkOut) / 60;
                                             }
 
                                             // Akumulasi late minutes jika ada

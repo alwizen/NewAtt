@@ -28,11 +28,9 @@ class AttendanceSummaryResource extends Resource
 {
     protected static ?string $model = AttendanceSummary::class;
 
-    protected static ?string $navigationLabel = 'Ringkasan Absensi 2';
+    protected static ?string $navigationLabel = 'Ringkasan Absensi';
 
     protected static ?string $label = 'Ringkasan Absensi';
-
-    // protected static ?string $navigationGroup = 'Absensi';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
 
@@ -51,10 +49,13 @@ class AttendanceSummaryResource extends Resource
                             ->searchable()
                             ->preload()
                             ->required()
+                            ->reactive()
                             ->getOptionLabelFromRecordUsing(
-                                fn($record) =>
-                                "{$record->employee_number} - {$record->name}"
-                            ),
+                                fn($record) => "{$record->employee_number} - {$record->name}"
+                            )
+                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                self::calculateAttendanceSummary($state, $get('year'), $get('month'), $set);
+                            }),
 
                         TextInput::make('year')
                             ->label('Tahun')
@@ -62,7 +63,11 @@ class AttendanceSummaryResource extends Resource
                             ->numeric()
                             ->minValue(2000)
                             ->maxValue(2099)
-                            ->default(now()->year),
+                            ->default(now()->year)
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                self::calculateAttendanceSummary($get('employee_id'), $state, $get('month'), $set);
+                            }),
 
                         Select::make('month')
                             ->label('Bulan')
@@ -81,13 +86,17 @@ class AttendanceSummaryResource extends Resource
                                 11 => 'November',
                                 12 => 'Desember',
                             ])
-                            ->default(now()->month),
+                            ->default(now()->month)
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                self::calculateAttendanceSummary($get('employee_id'), $get('year'), $state, $set);
+                            }),
                     ]),
 
                 Section::make('Status Kehadiran')
                     ->columnSpan(3)
                     ->columns(3)
-                    ->description('Jumlah hari berdasarkan status kehadiran')
+                    ->description('Jumlah hari berdasarkan status kehadiran (otomatis dari data absensi)')
                     ->components([
                         TextInput::make('total_present')
                             ->label('Total Hadir')
@@ -95,7 +104,9 @@ class AttendanceSummaryResource extends Resource
                             ->default(0)
                             ->minValue(0)
                             ->suffix('hari')
-                            ->required(),
+                            ->readOnly()
+                            ->dehydrated()
+                            ->extraAttributes(['class' => 'font-semibold']),
 
                         TextInput::make('total_late')
                             ->label('Total Terlambat')
@@ -103,7 +114,9 @@ class AttendanceSummaryResource extends Resource
                             ->default(0)
                             ->minValue(0)
                             ->suffix('hari')
-                            ->required(),
+                            ->readOnly()
+                            ->dehydrated()
+                            ->extraAttributes(['class' => 'font-semibold']),
 
                         TextInput::make('total_absent')
                             ->label('Total Tidak Hadir')
@@ -111,13 +124,15 @@ class AttendanceSummaryResource extends Resource
                             ->default(0)
                             ->minValue(0)
                             ->suffix('hari')
-                            ->required(),
+                            ->readOnly()
+                            ->dehydrated()
+                            ->extraAttributes(['class' => 'font-semibold']),
                     ]),
 
                 Section::make('Jam Kerja & Keterlambatan')
                     ->columnSpan(3)
                     ->columns(2)
-                    ->description('Total akumulasi jam kerja dan menit terlambat')
+                    ->description('Total akumulasi jam kerja dan menit terlambat (otomatis dari data absensi)')
                     ->components([
                         TextInput::make('total_work_hours')
                             ->label('Total Jam Kerja')
@@ -126,7 +141,9 @@ class AttendanceSummaryResource extends Resource
                             ->minValue(0)
                             ->step(0.01)
                             ->suffix('jam')
-                            ->required()
+                            ->readOnly()
+                            ->dehydrated()
+                            ->extraAttributes(['class' => 'font-semibold'])
                             ->helperText('Total jam kerja efektif dalam sebulan'),
 
                         TextInput::make('total_late_minutes')
@@ -135,10 +152,51 @@ class AttendanceSummaryResource extends Resource
                             ->default(0)
                             ->minValue(0)
                             ->suffix('menit')
-                            ->required()
+                            ->readOnly()
+                            ->dehydrated()
+                            ->extraAttributes(['class' => 'font-semibold'])
                             ->helperText('Akumulasi total keterlambatan dalam menit'),
                     ]),
             ]);
+    }
+
+    /**
+     * Fungsi untuk menghitung ringkasan absensi otomatis
+     */
+    protected static function calculateAttendanceSummary($employeeId, $year, $month, callable $set): void
+    {
+        if (!$employeeId || !$year || !$month) {
+            return;
+        }
+
+        // Tentukan periode (awal dan akhir bulan)
+        $startDate = Carbon::create($year, $month, 1)->startOfMonth();
+        $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+
+        // Ambil data attendance untuk karyawan dan periode tersebut
+        $attendances = \App\Models\Attendance::where('employee_id', $employeeId)
+            ->whereBetween('work_date', [$startDate, $endDate])
+            ->get();
+
+        // Hitung berdasarkan status
+        $totalPresent = $attendances->where('status', 'present')->count();
+        $totalLate = $attendances->where('status', 'late')->count();
+        $totalAbsent = $attendances->where('status', 'absent')->count();
+
+        // Hitung total jam kerja (dari semua status kecuali absent)
+        $totalWorkHours = $attendances
+            ->whereIn('status', ['present', 'late', 'incomplete'])
+            ->sum('work_hours');
+
+        // Hitung total keterlambatan
+        $totalLateMinutes = $attendances->sum('late_minutes');
+
+        // Set semua nilai
+        $set('total_present', $totalPresent);
+        $set('total_late', $totalLate);
+        $set('total_absent', $totalAbsent);
+        $set('total_work_hours', round($totalWorkHours, 2));
+        $set('total_late_minutes', $totalLateMinutes);
     }
 
     public static function infolist(Schema $schema): Schema
