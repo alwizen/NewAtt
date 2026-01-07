@@ -112,11 +112,19 @@ class AttendanceResource extends Resource
                     ->dateTime(),
                 TextColumn::make('late_minutes')
                     ->label('Terlambat')
-                    ->numeric()
+                    ->formatStateUsing(function ($state) {
+                        if ($state == 0) {
+                            return '-';
+                        }
 
-                    ->suffix(' mnt')
+                        $hours = floor($state / 60);
+                        $minutes = $state % 60;
+
+                        return sprintf('%02d:%02d', $hours, $minutes);
+                    })
+                    ->suffix(fn($state) => $state > 0 ? ' jam' : '')
                     ->color(fn($state) => $state > 0 ? 'warning' : 'success')
-                    ->icon(fn($state) => $state > 0 ? Heroicon::OutlinedExclamationTriangle : null),
+                    ->icon(fn($state) => $state > 0 ? 'heroicon-o-exclamation-triangle' : 'heroicon-o-check-circle'),
                 TextColumn::make('work_hours')
                     ->label('Jam Kerja')
                     ->numeric()

@@ -44,21 +44,20 @@ class DepartmentResource extends Resource
         return $schema
             ->components([
                 TextInput::make('name')
-                    ->required()
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state, ?string $operation) {
-                        if ($operation === 'create') {
-                            $set('code', Str::slug($state));
-                        }
-                    }),
-
+                    ->required(),
                 TextInput::make('code')
                     ->required()
+                    ->disabled()
+                    ->dehydrated()
+                    ->default(function (string $operation) {
+                        if ($operation === 'create') {
+                            return 'MBG-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                        }
+                        return null;
+                    })
                     ->hidden(fn(string $operation): bool => $operation === 'edit'),
-
                 Textarea::make('description')
                     ->columnSpanFull(),
-
                 Toggle::make('is_active')
                     ->required()
                     ->default(true),
