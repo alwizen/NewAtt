@@ -28,7 +28,14 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('/')
+            ->spa()
             ->login()
+            ->sidebarWidth('17rem')
+            ->favicon(asset('img/bgn.png'))
+            ->brandLogo(asset('img/bgn_light.png'))
+            ->darkModeBrandLogo(asset('img/bgn_dark.png'))
+            ->brandLogoHeight('3.4rem')
+            ->sidebarFullyCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Default,
             ])

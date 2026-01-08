@@ -43,7 +43,6 @@ class EmployeeResource extends Resource
                 TextInput::make('rfid_number')
                     ->label('Kartu Absen')
                     ->required(),
-
                 TextInput::make('employee_number')
                     ->label('No Karyawan')
                     ->required()
@@ -106,25 +105,27 @@ class EmployeeResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('rfid_number')
+                    ->label('Kartu Absen')
                     ->searchable(),
                 TextColumn::make('employee_number')
-                    ->searchable(),
+                    ->searchable()
+                    ->label('No Karyawan'),
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->label('Nama Lengkap'),
                 TextColumn::make('department.name')
-                    ->searchable(),
+                    ->searchable()
+                    ->label('Jabatan'),
                 TextColumn::make('join_date')
                     ->date()
-                    ->sortable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('is_active')
                     ->boolean(),
                 TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
                     ->dateTime()
-                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

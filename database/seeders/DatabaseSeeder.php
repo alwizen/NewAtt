@@ -180,7 +180,7 @@ class DatabaseSeeder extends Seeder
 
         // Tim Persiapan
         Employee::create([
-            'rfid_number' => '1001',
+            'rfid_number' => '1',
             'employee_number' => 'PREP001',
             'name' => 'Budi Santoso',
             'department_id' => $timPersiapan->id,
@@ -189,7 +189,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Employee::create([
-            'rfid_number' => '1002',
+            'rfid_number' => '2',
             'employee_number' => 'PREP002',
             'name' => 'Siti Aminah',
             'department_id' => $timPersiapan->id,
@@ -199,7 +199,7 @@ class DatabaseSeeder extends Seeder
 
         // Tim Pengolahan
         Employee::create([
-            'rfid_number' => '2001',
+            'rfid_number' => '3',
             'employee_number' => 'COOK001',
             'name' => 'Ahmad Wijaya',
             'department_id' => $timPengolahan->id,
@@ -208,7 +208,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Employee::create([
-            'rfid_number' => '2002',
+            'rfid_number' => '4',
             'employee_number' => 'COOK002',
             'name' => 'Dewi Lestari',
             'department_id' => $timPengolahan->id,
@@ -218,7 +218,7 @@ class DatabaseSeeder extends Seeder
 
         // Tim Pemorsian
         Employee::create([
-            'rfid_number' => '3001',
+            'rfid_number' => '5',
             'employee_number' => 'PORT001',
             'name' => 'Eko Prasetyo',
             'department_id' => $timPemorsian->id,
@@ -228,7 +228,7 @@ class DatabaseSeeder extends Seeder
 
         // Tim Distribusi
         Employee::create([
-            'rfid_number' => '4001',
+            'rfid_number' => '6',
             'employee_number' => 'DIST001',
             'name' => 'Fitri Handayani',
             'department_id' => $timDistribusi->id,
@@ -238,7 +238,7 @@ class DatabaseSeeder extends Seeder
 
         // Tim Cuci Ompreng Shift 1
         Employee::create([
-            'rfid_number' => '5001',
+            'rfid_number' => '7',
             'employee_number' => 'WASH101',
             'name' => 'Gunawan Setiawan',
             'department_id' => $timCuciShift1->id,
@@ -248,7 +248,7 @@ class DatabaseSeeder extends Seeder
 
         // Tim Cuci Ompreng Shift 2
         Employee::create([
-            'rfid_number' => '5002',
+            'rfid_number' => '8',
             'employee_number' => 'WASH201',
             'name' => 'Hendra Kusuma',
             'department_id' => $timCuciShift2->id,
@@ -258,7 +258,7 @@ class DatabaseSeeder extends Seeder
 
         // Tim Petugas Kebersihan
         Employee::create([
-            'rfid_number' => '6001',
+            'rfid_number' => '9',
             'employee_number' => 'CLEAN001',
             'name' => 'Indah Permata',
             'department_id' => $timKebersihan->id,
@@ -267,7 +267,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Employee::create([
-            'rfid_number' => '6002',
+            'rfid_number' => '10',
             'employee_number' => 'CLEAN002',
             'name' => 'Joko Susilo',
             'department_id' => $timKebersihan->id,
@@ -277,7 +277,7 @@ class DatabaseSeeder extends Seeder
 
         // Supervisor Dapur
         Employee::create([
-            'rfid_number' => '9001',
+            'rfid_number' => '11',
             'employee_number' => 'SPV001',
             'name' => 'Kartika Sari',
             'department_id' => $spvDapur->id,

@@ -103,13 +103,17 @@ class AttendanceResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('employee.name')
-                    ->searchable(),
+                    ->searchable()
+                    ->label('Nama Lengkap'),
                 TextColumn::make('work_date')
-                    ->date(),
+                    ->date()
+                    ->label('Tanggal Kerja'),
                 TextColumn::make('check_in_at')
-                    ->dateTime(),
+                    ->dateTime()
+                    ->label('Masuk'),
                 TextColumn::make('check_out_at')
-                    ->dateTime(),
+                    ->dateTime()
+                    ->label('Keluar'),
                 TextColumn::make('late_minutes')
                     ->label('Terlambat')
                     ->formatStateUsing(function ($state) {
