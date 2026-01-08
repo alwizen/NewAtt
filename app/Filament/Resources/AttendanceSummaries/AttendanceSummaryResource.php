@@ -28,6 +28,8 @@ class AttendanceSummaryResource extends Resource
 {
     protected static ?string $model = AttendanceSummary::class;
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $navigationLabel = 'Ringkasan Absensi';
 
     protected static ?string $label = 'Ringkasan Absensi';

@@ -22,7 +22,7 @@ class PayrollDetailResource extends Resource
 {
     protected static ?string $model = PayrollDetail::class;
 
-    protected static ?string $navigationLabel = 'Penggajian';
+    protected static ?string $navigationLabel = 'Penggajian (Maintenance)';
 
     protected static string | UnitEnum | null $navigationGroup = 'Gaji Relawan';
 

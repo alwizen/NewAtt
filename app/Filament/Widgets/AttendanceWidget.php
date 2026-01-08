@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Filament\Widgets;
+
+use App\Models\Attendance;
+use Filament\Actions\BulkActionGroup;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
+use Illuminate\Database\Eloquent\Builder;
+
+class AttendanceWidget extends TableWidget
+{
+    protected int | string | array $columnSpan = [
+        'md' => 2,
+        'xl' => 3,
+    ];
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(
+                fn(): Builder =>
+                Attendance::query()
+                    ->with(['employee.department'])
+            )
+            ->columns([
+                TextColumn::make('employee.name')
+                    ->label('Nama Lengkap'),
+
+                TextColumn::make('employee.department.name')
+                    ->label('Jabatan')
+                    ->badge(),
+
+                TextColumn::make('work_date')
+                    ->label('Tanggal')
+                    ->date(),
+
+                TextColumn::make('check_in_at')
+                    ->dateTime()
+                    ->label('Masuk'),
+
+                TextColumn::make('check_out_at')
+                    ->dateTime()
+                    ->label('Keluar'),
+
+                TextColumn::make('work_hours')
+                    ->numeric()
+                    ->label('Jam Kerja'),
+
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn(string $state) => match ($state) {
+                        'present' => 'success',
+                        'late' => 'warning',
+                        'absent' => 'danger',
+                        'incomplete' => 'gray',
+                        default => 'secondary',
+                    }),
+            ]);
+    }
+}
