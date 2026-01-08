@@ -37,11 +37,11 @@ class AttendanceWidget extends TableWidget
                     ->date(),
 
                 TextColumn::make('check_in_at')
-                    ->dateTime()
+                    ->dateTime('j-m-Y, H:i')
                     ->label('Masuk'),
 
                 TextColumn::make('check_out_at')
-                    ->dateTime()
+                    ->dateTime('j-m-Y, H:i')
                     ->label('Keluar'),
 
                 TextColumn::make('work_hours')

@@ -109,10 +109,10 @@ class AttendanceResource extends Resource
                     ->date()
                     ->label('Tanggal Kerja'),
                 TextColumn::make('check_in_at')
-                    ->dateTime()
+                    ->dateTime('j/m/Y, H:i')
                     ->label('Masuk'),
                 TextColumn::make('check_out_at')
-                    ->dateTime()
+                    ->dateTime('j/m/Y, H:i')
                     ->label('Keluar'),
                 TextColumn::make('late_minutes')
                     ->label('Terlambat')
