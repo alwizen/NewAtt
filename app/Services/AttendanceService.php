@@ -16,47 +16,54 @@ class AttendanceService
     {
         $tappedTime = Carbon::parse($tappedAt);
 
-        // Ambil work schedule dari departemen
         $workSchedule = $employee->department->activeWorkSchedule;
-
         if (!$workSchedule) {
             throw new \Exception('Departemen tidak memiliki jadwal kerja aktif');
         }
 
-        // Tentukan tanggal kerja
-        $workDate = $workSchedule->determineWorkDate($tappedTime);
+        /**
+         * 1️⃣ Cari attendance yang masih terbuka (belum checkout)
+         */
+        $attendance = Attendance::where('employee_id', $employee->id)
+            ->whereNotNull('check_in_at')
+            ->whereNull('check_out_at')
+            ->orderBy('check_in_at', 'desc')
+            ->first();
 
-        // Cari attendance record untuk tanggal kerja ini
-        $attendance = Attendance::firstOrNew([
-            'employee_id' => $employee->id,
-            'work_date' => $workDate,
-        ]);
-
-        // Logika: jika belum ada check_in atau sudah ada check_out, ini adalah check_in baru
-        // Jika sudah ada check_in tapi belum check_out, ini adalah check_out
-        if (!$attendance->check_in_at || $attendance->check_out_at) {
-            // Check-in
-            $attendance->check_in_at = $tappedTime;
-            $attendance->check_out_at = null;
-            $attendance->late_minutes = $workSchedule->calculateLateMinutes($tappedTime);
-            $attendance->work_hours = 0;
-            $attendance->status = 'incomplete';
-            $message = 'Check-in berhasil';
-        } else {
-            // Check-out
+        /**
+         * 2️⃣ Jika ADA → CHECK-OUT
+         */
+        if ($attendance) {
             $attendance->check_out_at = $tappedTime;
             $attendance->work_hours = $attendance->calculateWorkHours();
             $attendance->updateStatus();
-            $message = 'Check-out berhasil';
+
+            return [
+                'attendance' => $attendance->fresh(),
+                'message' => 'Check-out berhasil',
+            ];
         }
 
-        $attendance->save();
+        /**
+         * 3️⃣ Jika TIDAK ADA → CHECK-IN
+         */
+        $workDate = $workSchedule->determineWorkDate($tappedTime);
+
+        $attendance = Attendance::create([
+            'employee_id'   => $employee->id,
+            'work_date'     => $workDate,
+            'check_in_at'   => $tappedTime,
+            'late_minutes' => $workSchedule->calculateLateMinutes($tappedTime),
+            'work_hours'    => 0,
+            'status'        => 'incomplete',
+        ]);
 
         return [
             'attendance' => $attendance->fresh(),
-            'message' => $message,
+            'message' => 'Check-in berhasil',
         ];
     }
+
 
     /**
      * Update manual attendance record
