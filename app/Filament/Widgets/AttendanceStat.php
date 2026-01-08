@@ -10,6 +10,8 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class AttendanceStat extends StatsOverviewWidget
 {
+    protected static bool $isLazy = false;
+    
     protected function getStats(): array
     {
         $today = Carbon::today();

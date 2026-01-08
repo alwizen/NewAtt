@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Attendance;
 use Filament\Actions\BulkActionGroup;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\PaginationMode;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,9 +17,15 @@ class AttendanceWidget extends TableWidget
         'xl' => 3,
     ];
 
+    protected static bool $isLazy = false;
+
     public function table(Table $table): Table
     {
         return $table
+            ->paginationMode(PaginationMode::Simple)
+            ->poll('5s')
+            ->heading('')
+            ->striped()
             ->query(
                 fn(): Builder =>
                 Attendance::query()
