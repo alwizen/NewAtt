@@ -33,11 +33,11 @@ class PayrollDetailResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
-            ->columns(3)
+            ->columns(2)
             ->components([
                 Section::make('Informasi Karyawan')
-                    ->columnSpan(3)
-                    ->columns(3)
+                    ->columnSpan(2)
+                    ->columns(2)
                     ->components([
                         Select::make('payroll_id')
                             ->label('Periode Payroll')
@@ -109,10 +109,10 @@ class PayrollDetailResource extends Resource
                                 }
                             }),
 
-                        Select::make('attendance_summary_id')
-                            ->label('Ringkasan Absensi')
-                            ->relationship('attendanceSummary', 'id')
-                            ->placeholder('Pilih jika ada'),
+                        // Select::make('attendance_summary_id')
+                        //     ->label('Ringkasan Absensi')
+                        //     ->relationship('attendanceSummary', 'id')
+                        //     ->placeholder('Pilih jika ada'),
                     ]),
 
                 Section::make('Data Absensi')

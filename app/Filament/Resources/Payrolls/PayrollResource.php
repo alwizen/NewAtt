@@ -24,6 +24,7 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Carbon\Carbon;
+use Filament\Actions\Action;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use UnitEnum;
@@ -302,6 +303,26 @@ class PayrollResource extends Resource
                     ->visible(fn($record) => $record->status === 'draft'),
                 DeleteAction::make()
                     ->visible(fn($record) => $record->status === 'draft'),
+                Action::make('changeStatus')
+                    ->label('Ubah Status')
+                    ->icon('heroicon-o-arrow-path')
+                    ->visible(fn($record) => $record->status !== 'paid')
+                    ->form([
+                        Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                'draft' => 'Draft',
+                                'processed' => 'Processed',
+                                'paid' => 'Paid',
+                                'cancelled' => 'Cancelled',
+                            ])
+                            ->required(),
+                    ])
+                    ->action(function ($record, array $data) {
+                        $record->update([
+                            'status' => $data['status'],
+                        ]);
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
