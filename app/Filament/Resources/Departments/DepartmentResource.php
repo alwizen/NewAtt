@@ -10,6 +10,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -56,11 +57,25 @@ class DepartmentResource extends Resource
                         return null;
                     })
                     ->hidden(fn(string $operation): bool => $operation === 'edit'),
-                Textarea::make('description')
-                    ->columnSpanFull(),
+                Select::make('salary_type')
+                    ->label('Tipe Gaji')
+                    ->options([
+                        'daily' => 'Harian',
+                        'hourly' => 'Per Jam',
+                    ]),
+                TextInput::make('daily_rate')
+                    ->label('Gaji Harian'),
+                TextInput::make('hourly_rate')
+                    ->label('Gaji Per Jam'),
+                TextInput::make('allowance')
+                    ->label('Tunjangan'),
+                TextInput::make('pj_allowance')
+                    ->label('Tunjangan PJ'),
                 Toggle::make('is_active')
                     ->required()
                     ->default(true),
+                Textarea::make('description')
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -89,9 +104,23 @@ class DepartmentResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->label('Nama Jabatan'),
                 TextColumn::make('code')
-                    ->searchable(),
+                    ->label('Kode Jabatan'),
+                TextColumn::make('salary_type')
+                    ->label('Tipe Gaji'),
+                TextColumn::make('daily_rate')
+                    ->label('Gaji Harian')
+                    ->money('IDR'),
+                TextColumn::make('hourly_rate')
+                    ->money('IDR')
+                    ->label('Gaji Per Jam'),
+                TextColumn::make('allowance')
+                    ->money('IDR')
+                    ->label('Tunjangan'),
+                TextColumn::make('pj_allowance')
+                    ->money('IDR')
+                    ->label('Tunjangan PJ'),
                 IconColumn::make('is_active')
                     ->boolean(),
                 TextColumn::make('created_at')

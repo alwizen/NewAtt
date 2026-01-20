@@ -41,13 +41,22 @@ class PayrollDetailResource extends Resource
                     ->components([
                         Select::make('payroll_id')
                             ->label('Periode Payroll')
-                            ->relationship('payroll', 'id')
+                            ->relationship(
+                                name: 'payroll',
+                                titleAttribute: 'id',
+                                modifyQueryUsing: fn($query) =>
+                                $query->where('status', 'draft')
+                            )
                             ->getOptionLabelFromRecordUsing(
                                 fn($record) =>
                                 "Payroll {$record->year} - " .
-                                    \Carbon\Carbon::create()->month($record->month)->translatedFormat('F')
+                                    \Carbon\Carbon::create()
+                                    ->month($record->month)
+                                    ->translatedFormat('F') .
+                                    " ({$record->period_start->format('d M')} - {$record->period_end->format('d M')})"
                             )
                             ->required(),
+
 
                         Select::make('employee_id')
                             ->label('Karyawan')
@@ -60,27 +69,49 @@ class PayrollDetailResource extends Resource
                             )
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                if (!$state) return;
+                                if (! $state) return;
 
                                 $payrollId = $get('payroll_id');
-                                if (!$payrollId) return;
+                                if (! $payrollId) return;
 
-                                // Cari attendance summary untuk karyawan dan periode ini
+                                // =====================
+                                // AMBIL EMPLOYEE + DEPARTMENT
+                                // =====================
+                                $employee = \App\Models\Employee::with('department')->find($state);
+                                if (! $employee || ! $employee->department) return;
+
+                                $department = $employee->department;
+
+                                // =====================
+                                // SET TARIF DARI DEPARTMENT
+                                // =====================
+                                $set('salary_type', $department->salary_type);
+                                $set('daily_rate', $department->daily_rate);
+                                $set('hourly_rate', $department->hourly_rate);
+                                $set('allowances', $department->allowance);
+
+                                // Kalau nanti kamu punya flag PJ di employee
+                                if (isset($employee->is_pj) && ! $employee->is_pj) {
+                                    $set('pj_allowance', 0);
+                                } else {
+                                    $set('pj_allowance', $department->pj_allowance);
+                                }
+
+                                // =====================
+                                // ATTENDANCE SUMMARY
+                                // =====================
                                 $attendanceSummary = \App\Models\AttendanceSummary::where('employee_id', $state)
                                     ->where('payroll_id', $payrollId)
                                     ->first();
 
                                 if ($attendanceSummary) {
-                                    // Ambil semua data dari attendance summary
                                     $set('attendance_summary_id', $attendanceSummary->id);
                                     $set('total_work_days', $attendanceSummary->total_work_days ?? 0);
                                     $set('total_work_hours', $attendanceSummary->total_work_hours ?? 0);
                                     $set('total_late_minutes', $attendanceSummary->total_late_minutes ?? 0);
                                 } else {
-                                    // Jika tidak ada attendance summary, hitung dari data attendance
                                     $payroll = \App\Models\Payroll::find($payrollId);
                                     if ($payroll) {
-                                        // Ambil attendance dengan status KECUALI absent
                                         $attendances = \App\Models\Attendance::where('employee_id', $state)
                                             ->whereBetween('work_date', [$payroll->period_start, $payroll->period_end])
                                             ->whereIn('status', ['present', 'late', 'incomplete'])
@@ -91,14 +122,12 @@ class PayrollDetailResource extends Resource
                                         $totalLateMinutes = 0;
 
                                         foreach ($attendances as $attendance) {
-                                            // Hitung jam kerja dari check_in_at dan check_out_at
                                             if ($attendance->check_in_at && $attendance->check_out_at) {
                                                 $checkIn = \Carbon\Carbon::parse($attendance->check_in_at);
                                                 $checkOut = \Carbon\Carbon::parse($attendance->check_out_at);
                                                 $totalWorkHours += $checkIn->diffInMinutes($checkOut) / 60;
                                             }
 
-                                            // Akumulasi late minutes jika ada
                                             $totalLateMinutes += $attendance->late_minutes ?? 0;
                                         }
 
@@ -108,11 +137,6 @@ class PayrollDetailResource extends Resource
                                     }
                                 }
                             }),
-
-                        // Select::make('attendance_summary_id')
-                        //     ->label('Ringkasan Absensi')
-                        //     ->relationship('attendanceSummary', 'id')
-                        //     ->placeholder('Pilih jika ada'),
                     ]),
 
                 Section::make('Data Absensi')

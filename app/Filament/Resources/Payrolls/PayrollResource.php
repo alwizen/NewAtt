@@ -45,100 +45,85 @@ class PayrollResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Periode Payroll')
-                    ->columns(2)
-                    ->components([
-                        TextInput::make('year')
-                            ->label('Tahun')
-                            ->required()
-                            ->numeric()
-                            ->minValue(2000)
-                            ->maxValue(2099)
-                            ->default(now()->year)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                self::updatePeriodDates($get, $set);
-                            }),
+                TextInput::make('year')
+                    ->label('Tahun')
+                    ->required()
+                    ->numeric()
+                    ->minValue(2000)
+                    ->maxValue(2099)
+                    ->default(now()->year)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (Get $get, Set $set) {
+                        self::updatePeriodDates($get, $set);
+                    }),
 
-                        Select::make('month')
-                            ->label('Bulan')
-                            ->required()
-                            ->options([
-                                1 => 'Januari',
-                                2 => 'Februari',
-                                3 => 'Maret',
-                                4 => 'April',
-                                5 => 'Mei',
-                                6 => 'Juni',
-                                7 => 'Juli',
-                                8 => 'Agustus',
-                                9 => 'September',
-                                10 => 'Oktober',
-                                11 => 'November',
-                                12 => 'Desember',
-                            ])
-                            ->default(now()->month)
-                            ->live()
-                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                self::updatePeriodDates($get, $set);
-                            }),
-                    ]),
+                Select::make('month')
+                    ->label('Bulan')
+                    ->required()
+                    ->options([
+                        1 => 'Januari',
+                        2 => 'Februari',
+                        3 => 'Maret',
+                        4 => 'April',
+                        5 => 'Mei',
+                        6 => 'Juni',
+                        7 => 'Juli',
+                        8 => 'Agustus',
+                        9 => 'September',
+                        10 => 'Oktober',
+                        11 => 'November',
+                        12 => 'Desember',
+                    ])
+                    ->default(now()->month)
+                    ->live()
+                    ->afterStateUpdated(function (Get $get, Set $set) {
+                        self::updatePeriodDates($get, $set);
+                    }),
 
-                Section::make('Tanggal Periode')
-                    ->columns(2)
-                    ->components([
-                        DatePicker::make('period_start')
-                            ->label('Tanggal Mulai')
-                            ->required()
-                            ->live()
-                            ->afterStateUpdated(
-                                fn(Get $get, Set $set) =>
-                                $set('period_end', null)
-                            ),
+                DatePicker::make('period_start')
+                    ->label('Tanggal Mulai')
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(
+                        fn(Get $get, Set $set) =>
+                        $set('period_end', null)
+                    ),
 
-                        DatePicker::make('period_end')
-                            ->label('Tanggal Selesai')
-                            ->required()
-                            ->afterOrEqual('period_start')
-                            ->minDate(fn(Get $get) => $get('period_start')),
-                    ]),
+                DatePicker::make('period_end')
+                    ->label('Tanggal Selesai')
+                    ->required()
+                    ->afterOrEqual('period_start')
+                    ->minDate(fn(Get $get) => $get('period_start')),
 
-                Section::make('Status & Catatan')
-                    ->columns(2)
-                    ->components([
-                        Select::make('status')
-                            ->label('Status')
-                            ->required()
-                            ->options([
-                                'draft' => 'Draft',
-                                'processed' => 'Diproses',
-                                'approved' => 'Disetujui',
-                                'paid' => 'Dibayar',
-                                'cancelled' => 'Dibatalkan',
-                            ])
-                            ->default('draft')
-                            ->disabled(fn($record) => in_array($record?->status, ['paid', 'cancelled']))
-                            ->helperText(
-                                fn($record) =>
-                                $record?->status === 'paid'
-                                    ? 'Status tidak dapat diubah karena sudah dibayar'
-                                    : ($record?->status === 'cancelled'
-                                        ? 'Status tidak dapat diubah karena sudah dibatalkan'
-                                        : null)
-                            ),
+                Select::make('status')
+                    ->label('Status')
+                    ->required()
+                    ->options([
+                        'draft' => 'Draft',
+                        'processed' => 'Diproses',
+                        'approved' => 'Disetujui',
+                        'paid' => 'Dibayar',
+                        'cancelled' => 'Dibatalkan',
+                    ])
+                    ->default('draft')
+                    ->disabled(fn($record) => in_array($record?->status, ['paid', 'cancelled']))
+                    ->helperText(
+                        fn($record) =>
+                        $record?->status === 'paid'
+                            ? 'Status tidak dapat diubah karena sudah dibayar'
+                            : ($record?->status === 'cancelled'
+                                ? 'Status tidak dapat diubah karena sudah dibatalkan'
+                                : null)
+                    ),
 
-                        DateTimePicker::make('processed_at')
-                            ->label('Diproses Pada')
-                            ->disabled()
-                            ->visible(fn($record) => $record?->processed_at !== null)
-                            ->placeholder('-'),
-
-                        Textarea::make('notes')
-                            ->label('Catatan')
-                            ->columnSpanFull()
-                            ->rows(3)
-                            ->placeholder('Tambahkan catatan jika diperlukan'),
-                    ]),
+                DateTimePicker::make('processed_at')
+                    ->label('Diproses Pada')
+                    ->disabled()
+                    ->visible(fn($record) => $record?->processed_at !== null)
+                    ->placeholder('-'),
+                Textarea::make('notes')
+                    ->label('Catatan')
+                    ->placeholder('Tambahkan catatan jika diperlukan'),
             ]);
     }
 

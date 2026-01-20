@@ -30,6 +30,8 @@ class AttendanceWidget extends TableWidget
                 fn(): Builder =>
                 Attendance::query()
                     ->with(['employee.department'])
+                    ->latest()
+                    ->whereDate('created_at', today())
             )
             ->columns([
                 TextColumn::make('employee.name')

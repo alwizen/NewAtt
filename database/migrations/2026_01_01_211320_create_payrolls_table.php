@@ -11,17 +11,26 @@ return new class extends Migration
     {
         Schema::create('payrolls', function (Blueprint $table) {
             $table->id();
+
+            // Info periode
             $table->year('year');
             $table->tinyInteger('month');
+
             $table->date('period_start');
             $table->date('period_end');
-            $table->enum('status', ['draft', 'processed', 'paid', 'cancelled'])->default('draft');
+
+            // Status flow
+            $table->enum('status', ['draft', 'processed', 'paid', 'cancelled'])
+                ->default('draft');
+
             $table->dateTime('processed_at')->nullable();
             $table->foreignId('processed_by')->nullable()->constrained('employees');
+
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->unique(['year', 'month']);
+            // Unik per periode, bukan per bulan
+            $table->unique(['period_start', 'period_end']);
         });
     }
 

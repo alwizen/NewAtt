@@ -11,29 +11,10 @@ return new class extends Migration
     {
         Schema::create('departments', function (Blueprint $table) {
             $table->id();
-
-            // Info dasar
             $table->string('name');
             $table->string('code')->unique();
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
-
-            // Master penggajian
-            $table->enum('salary_type', ['daily', 'hourly'])
-                ->default('daily')
-                ->comment('daily = gaji per hari, hourly = gaji per jam');
-
-            $table->decimal('daily_rate', 12, 2)->default(0);
-            $table->decimal('hourly_rate', 12, 2)->default(0);
-
-            // Tunjangan
-            $table->decimal('allowance', 12, 2)->default(0)
-                ->comment('Tunjangan tetap per periode payroll');
-
-            // Tambahan khusus PJ / Ketua Tim
-            $table->decimal('pj_allowance', 12, 2)->default(0)
-                ->comment('Tambahan gaji untuk ketua tim / PJ');
-
             $table->timestamps();
         });
     }

@@ -17,12 +17,26 @@ class Department extends Model
         'code',
         'description',
         'is_active',
+
+        // Penggajian
+        'salary_type',
+        'daily_rate',
+        'hourly_rate',
+        'allowance',
+        'pj_allowance',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+
+        // Penggajian
+        'daily_rate' => 'decimal:2',
+        'hourly_rate' => 'decimal:2',
+        'allowance' => 'decimal:2',
+        'pj_allowance' => 'decimal:2',
     ];
 
+    // Relations
     public function employees(): HasMany
     {
         return $this->hasMany(Employee::class);
@@ -36,5 +50,16 @@ class Department extends Model
     public function activeWorkSchedule(): HasOne
     {
         return $this->hasOne(WorkSchedule::class)->where('is_active', true);
+    }
+
+    // Helpers
+    public function isDailySalary(): bool
+    {
+        return $this->salary_type === 'daily';
+    }
+
+    public function isHourlySalary(): bool
+    {
+        return $this->salary_type === 'hourly';
     }
 }
