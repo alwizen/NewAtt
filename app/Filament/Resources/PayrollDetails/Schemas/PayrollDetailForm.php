@@ -55,8 +55,6 @@ class PayrollDetailForm
                         Select::make('employee_id')
                             ->label('Karyawan')
                             ->relationship('employee', 'name')
-                            ->searchable()
-                            ->preload()
                             ->required()
                             ->getOptionLabelFromRecordUsing(
                                 fn($record) => "{$record->employee_number} - {$record->name}"
@@ -155,8 +153,8 @@ class PayrollDetailForm
                     ]),
 
                 Section::make('Data Absensi')
-                    ->columnSpan(3)
-                    ->columns(3)
+                    ->columnSpan(2)
+                    ->columns(2)
                     ->components([
                         TextInput::make('total_work_days')
                             ->label('Total Hari Kerja')
@@ -175,12 +173,12 @@ class PayrollDetailForm
                             ->readOnly()
                             ->dehydrated(), // Tetap disimpan meski readonly
 
-                        TextInput::make('total_late_minutes')
-                            ->label('Total Terlambat')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0)
-                            ->suffix('menit'),
+                        // TextInput::make('total_late_minutes')
+                        //     ->label('Total Terlambat')
+                        //     ->numeric()
+                        //     ->default(0)
+                        //     ->minValue(0)
+                        //     ->suffix('menit'),
                     ]),
 
                 Section::make('Tarif')
