@@ -54,11 +54,7 @@ class PayrollDetailForm
 
                         Select::make('employee_id')
                             ->label('Karyawan')
-                            ->relationship('employee', 'name')
                             ->required()
-                            ->getOptionLabelFromRecordUsing(
-                                fn($record) => "{$record->employee_number} - {$record->name}"
-                            )
                             ->live(onBlur: true)
                             ->getOptionLabelFromRecordUsing(
                                 fn($record) => "{$record->employee_number} - {$record->name}"
@@ -66,17 +62,20 @@ class PayrollDetailForm
                             ->relationship(
                                 name: 'employee',
                                 titleAttribute: 'name',
-                                modifyQueryUsing: function ($query, callable $get) {
+                                modifyQueryUsing: function ($query, callable $get, $record) {
                                     $payrollId = $get('payroll_id');
+                                    if (! $payrollId) return;
 
-                                    if (! $payrollId) {
-                                        return;
-                                    }
+                                    $currentEmployeeId = $record?->employee_id;
 
-                                    $query->whereNotIn('id', function ($sub) use ($payrollId) {
+                                    $query->whereNotIn('id', function ($sub) use ($payrollId, $currentEmployeeId) {
                                         $sub->select('employee_id')
                                             ->from('payroll_details')
-                                            ->where('payroll_id', $payrollId);
+                                            ->where('payroll_id', $payrollId)
+                                            ->when(
+                                                $currentEmployeeId,
+                                                fn($q) => $q->where('employee_id', '!=', $currentEmployeeId)
+                                            );
                                     });
                                 }
                             )
@@ -102,7 +101,6 @@ class PayrollDetailForm
                                 $set('hourly_rate', $department->hourly_rate);
                                 $set('allowances', $department->allowance);
 
-                                // Kalau nanti kamu punya flag PJ di employee
                                 if (isset($employee->is_pj) && ! $employee->is_pj) {
                                     $set('pj_allowance', 0);
                                 } else {
@@ -112,15 +110,23 @@ class PayrollDetailForm
                                 // =====================
                                 // ATTENDANCE SUMMARY
                                 // =====================
+                                $totalWorkDays  = 0;
+                                $totalWorkHours = 0;
+                                $totalLateMinutes = 0;
+
                                 $attendanceSummary = \App\Models\AttendanceSummary::where('employee_id', $state)
                                     ->where('payroll_id', $payrollId)
                                     ->first();
 
                                 if ($attendanceSummary) {
                                     $set('attendance_summary_id', $attendanceSummary->id);
-                                    $set('total_work_days', $attendanceSummary->total_work_days ?? 0);
-                                    $set('total_work_hours', $attendanceSummary->total_work_hours ?? 0);
-                                    $set('total_late_minutes', $attendanceSummary->total_late_minutes ?? 0);
+                                    $totalWorkDays    = $attendanceSummary->total_work_days ?? 0;
+                                    $totalWorkHours   = $attendanceSummary->total_work_hours ?? 0;
+                                    $totalLateMinutes = $attendanceSummary->total_late_minutes ?? 0;
+
+                                    $set('total_work_days', $totalWorkDays);
+                                    $set('total_work_hours', $totalWorkHours);
+                                    $set('total_late_minutes', $totalLateMinutes);
                                 } else {
                                     $payroll = \App\Models\Payroll::find($payrollId);
                                     if ($payroll) {
@@ -130,24 +136,38 @@ class PayrollDetailForm
                                             ->get();
 
                                         $totalWorkDays = $attendances->count();
-                                        $totalWorkHours = 0;
-                                        $totalLateMinutes = 0;
 
                                         foreach ($attendances as $attendance) {
                                             if ($attendance->check_in_at && $attendance->check_out_at) {
-                                                $checkIn = \Carbon\Carbon::parse($attendance->check_in_at);
+                                                $checkIn  = \Carbon\Carbon::parse($attendance->check_in_at);
                                                 $checkOut = \Carbon\Carbon::parse($attendance->check_out_at);
                                                 $totalWorkHours += $checkIn->diffInMinutes($checkOut) / 60;
                                             }
-
                                             $totalLateMinutes += $attendance->late_minutes ?? 0;
                                         }
 
+                                        $totalWorkHours = round($totalWorkHours, 2);
+
                                         $set('total_work_days', $totalWorkDays);
-                                        $set('total_work_hours', round($totalWorkHours, 2));
+                                        $set('total_work_hours', $totalWorkHours);
                                         $set('total_late_minutes', $totalLateMinutes);
                                     }
                                 }
+
+                                // =====================
+                                // HITUNG BASE SALARY OTOMATIS
+                                // =====================
+                                $salaryType = $department->salary_type;
+
+                                if ($salaryType === 'daily') {
+                                    $baseSalary = ($department->daily_rate ?? 0) * $totalWorkDays;
+                                } elseif ($salaryType === 'hourly') {
+                                    $baseSalary = ($department->hourly_rate ?? 0) * $totalWorkHours;
+                                } else {
+                                    $baseSalary = 0;
+                                }
+
+                                $set('base_salary', round($baseSalary));
                                 self::recalculateNetSalary($set, $get);
                             }),
                     ]),

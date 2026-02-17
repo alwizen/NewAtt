@@ -1,10 +1,15 @@
 <?php
 
+use App\Http\Controllers\PayrollSlipController;
 use App\Models\WorkSchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/tap', 'attendance.tap');
+
+Route::get('/payroll/slip/{payrollDetail}', [PayrollSlipController::class, 'show'])
+    ->name('payroll.slip')
+    ->middleware(['auth']);
 
 // Route::get('/debug-work-date', function () {
 //     $schedule = WorkSchedule::where('is_active', true)->first();

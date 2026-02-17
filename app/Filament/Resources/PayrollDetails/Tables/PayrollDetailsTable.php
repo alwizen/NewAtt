@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PayrollDetails\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -93,6 +94,12 @@ class PayrollDetailsTable
             ])
             ->defaultSort('payroll_id', 'desc')
             ->recordActions([
+                Action::make('cetak_slip')
+                    ->label('Cetak')
+                    ->icon('heroicon-o-printer')
+                    ->color('success')
+                    ->url(fn($record) => route('payroll.slip', $record->id))
+                    ->openUrlInNewTab(),
                 ViewAction::make(),
                 EditAction::make(),
             ])
