@@ -28,12 +28,12 @@ class PayrollDetailForm
         return $schema
             ->columns(2)
             ->components([
-                Section::make('Informasi Karyawan')
+                Section::make('Informasi Relawan')
                     ->columnSpan(2)
                     ->columns(2)
                     ->components([
                         Select::make('payroll_id')
-                            ->label('Periode Payroll')
+                            ->label('Periode Penggajian')
                             ->relationship(
                                 name: 'payroll',
                                 titleAttribute: 'id',
@@ -53,7 +53,7 @@ class PayrollDetailForm
                             ->live(onBlur: true),
 
                         Select::make('employee_id')
-                            ->label('Karyawan')
+                            ->label('Relawan')
                             ->required()
                             ->live(onBlur: true)
                             ->getOptionLabelFromRecordUsing(

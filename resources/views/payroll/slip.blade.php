@@ -249,7 +249,7 @@
 
         {{-- HEADER --}}
         <div class="header">
-            <img src="{{ asset('img/bgn.png') }}" alt="Logo" class="logo">
+            <img src="{{ asset('img/bgn_light.png') }}" alt="Logo" class="logo">
             <div class="header-content">
                 <div class="title">SATUAN PELAYANAN PEMENUHAN GIZI (SPPG)</div>
                 <div class="addr">{{ $app_address }}</div>

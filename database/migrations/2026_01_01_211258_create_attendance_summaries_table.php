@@ -1,5 +1,4 @@
 <?php
-// database/migrations/2024_01_01_000005_create_attendance_summaries_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

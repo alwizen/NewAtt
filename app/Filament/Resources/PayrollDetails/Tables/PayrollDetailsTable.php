@@ -31,12 +31,12 @@ class PayrollDetailsTable
                     ->sortable(),
 
                 TextColumn::make('employee.employee_number')
-                    ->label('No. Karyawan')
+                    ->label('No. Relawan')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('employee.name')
-                    ->label('Nama Karyawan')
+                    ->label('Nama Relawan')
                     ->searchable()
                     ->sortable(),
 

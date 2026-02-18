@@ -125,4 +125,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'address' => env('APP_ADDRESS', 'Default Address'),
+    'city' => env('APP_CITY', 'Default City'),
+    'accountant_name' => env('APP_ACCOUNTANT_NAME', 'Default Name'),
+
+
 ];

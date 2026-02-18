@@ -20,9 +20,9 @@ class PayrollSlipController extends Controller
             'employee'     => $employee,
             'department'   => $department,
             'payroll'      => $payroll,
-            'app_address'  => config('app.address', 'Jl. Contoh No. 1, Kota'),
-            'app_city'     => config('app.city', 'Jakarta'),
-            'accountantName' => config('app.accountant_name', 'Godos'),
+            'app_address'     => config('app.address'),
+            'app_city'        => config('app.city'),
+            'accountantName'  => config('app.accountant_name'),
             'tanggal_cetak'  => now()->translatedFormat('d F Y'),
         ]);
     }
