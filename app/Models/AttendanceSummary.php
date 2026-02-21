@@ -11,6 +11,7 @@ class AttendanceSummary extends Model
 {
     protected $fillable = [
         'employee_id',
+        'payroll_id',
         'year',
         'month',
         'total_present',
