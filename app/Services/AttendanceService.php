@@ -49,11 +49,23 @@ class AttendanceService
          */
         $workDate = $workSchedule->determineWorkDate($tappedTime);
 
+        // 🔎 CEK apakah sudah ada attendance di tanggal kerja ini
+        $existingAttendance = Attendance::where('employee_id', $employee->id)
+            ->whereDate('work_date', $workDate)
+            ->first();
+
+        if ($existingAttendance) {
+            return [
+                'attendance' => $existingAttendance,
+                'message' => 'Absensi hari ini sudah lengkap',
+            ];
+        }
+
         $attendance = Attendance::create([
             'employee_id'   => $employee->id,
             'work_date'     => $workDate,
             'check_in_at'   => $tappedTime,
-            'late_minutes' => $workSchedule->calculateLateMinutes($tappedTime),
+            'late_minutes'  => $workSchedule->calculateLateMinutes($tappedTime),
             'work_hours'    => 0,
             'status'        => 'incomplete',
         ]);
